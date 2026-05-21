@@ -48,6 +48,12 @@ All three functions live in `hw2_task.py` and must be completed:
 - `**optimized_loop(model, input_ids, n_steps)**` — starts as a copy of `slow_loop`. Make it as fast as possible. Changes may span the loop body and the model loading in `generate_optimized()`.
 - `**generate_optimized()**` — build the tiny Llama (consider dtype and other loading options too), then call `profile` and `time_generation` on `optimized_loop`.
 
+## Constraints
+
+- Stay within **PyTorch** and the libraries already pinned in `requirements.txt`. Anything built into PyTorch or `transformers` is fair game — figuring out *which* built-ins are worth reaching for is part of the exercise.
+- **Do not** use dedicated inference engines such as vLLM, TensorRT-LLM, TGI, SGLang, llama.cpp, ExLlama, or similar.
+- `utils.py` is provided and must not be modified — the slow baseline, model builder, and timing helpers must stay identical so your speedup numbers are comparable to the targets above.
+
 ## Background
 
 ### torch.profiler
