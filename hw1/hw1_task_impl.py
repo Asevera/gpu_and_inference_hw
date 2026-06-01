@@ -118,12 +118,31 @@ def compute_elementwise_metrics(num_elements, num_ops, bytes_per_element, ms, va
 # Why does performance rise as arithmetic intensity increases even though the
 # measured runtime changes only a little?
 #
+# A1. Runtime is flat because memory bandwidth isn't the bottleneck yet — so every
+# extra op is free arithmetic, which is why FLOP/s rises linearly until the compute
+# ceiling is hit around 128 ops.
+#
 # Q2. In one sample run, `matmul 1024x1024` achieved lower FLOP/s than the
 # `128 ops` compiled element-wise operation. Give one or two reasons why that can
 # happen on a large GPU like an H100.
+#
+# A2. Reason 1: A 1024×1024 matmul is a small problem on an H100 — there is less
+# parallel work to spread across SMs, and the matmul has more synchronization
+# between threads than our huge element-wise kernel (64M elements, one independent
+# op per thread).
+# Reason 2: Launch and setup overhead is a bigger slice of a short matmul, so the
+# measured FLOP/s looks lower even though the hardware is capable of more on
+# larger GEMMs.
 #
 # Q3. Between `64 ops` and `128 ops`, runtime increases more noticeably than it
 # did for smaller operations. What does that suggest about what resource is
 # becoming the bottleneck?
 #
+# A3. We were memory-bandwidth-limited earlier (flat runtime); between 64 and 128
+# ops compute becomes the bottleneck, so runtime starts to grow.
+#
 # Q4. Why do the eager `ops-K` points look so different from the compiled ones?
+#
+# A4. Eager ops keep paying the full memory cost for every single operation, so AI
+# stays stuck and FLOP/s never grows — while compiled/fused ops pay memory cost once
+# and stack all the arithmetic on top, letting both AI and FLOP/s rise cleanly.
